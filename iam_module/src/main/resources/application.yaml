@@ -1,0 +1,106 @@
+spring:
+  application:
+    name: iam_module
+
+  cloud:
+    gateway:
+      mvc:
+        http-client:
+          type: autodetect
+        routes:
+          #LAB 1 document_store
+          - id: documents
+            uri: http://172.20.0.9:8080
+            predicates:
+              - Path=/API/documents/**
+            filters:
+              #- TokenRelay
+              - RemoveRequestHeader=Cookie
+          #FRONTEND
+          - id: frontend
+            #uri: http://172.20.0.8:5173
+            uri: http://localhost:5173
+            predicates:
+              - Path=/ui/**
+
+          - id: home
+            uri: http://localhost:8080
+            predicates:
+              - Path=/
+            filters:
+              - RedirectTo=301,http://localhost:8080/ui
+
+          #LAB 2 crm
+          - id: messages
+            uri: http://172.20.0.10:8080
+            predicates:
+              - Path=/API/messages/**
+            filters:
+              - TokenRelay
+          - id: contacts
+            uri: http://172.20.0.10:8080
+            predicates:
+              - Path=/API/contacts/**
+            filters:
+              - TokenRelay
+          #LAB4 cm
+          - id: email
+            uri: http://172.20.0.12:8080
+            predicates:
+              - Path=/API/emails
+            filters:
+              - TokenRelay
+          #LAB3 crm2
+          - id: customers
+            uri: http://172.20.0.11:8080
+            predicates:
+              - Path=/API/customers/**
+            filters:
+              - TokenRelay
+          - id: professionals
+            uri: http://172.20.0.11:8080
+            predicates:
+              - Path=/API/professionals/**
+            filters:
+              - TokenRelay
+          - id: jobOffers
+            uri: http://172.20.0.11:8080
+            #uri: http://localhost:8085
+            predicates:
+              - Path=/API/joboffers/**
+            filters:
+              - TokenRelay
+        form-filter:
+          enabled: false
+  security:
+    oauth2:
+      client:
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8081/realms/realm1
+        registration:
+          iamclient1:
+            provider: keycloak
+            client-id: iamclient1
+            client-secret: d7aEnuigVr88OVAjYfPzDJFvqZsJrZrL
+            scope:
+              - openid
+              - offline_access
+            authorization-grant-type: authorization_code
+            #redirect-uri: http://localhost:8080/login/oauth2/code/iamclient1
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: -1
+      max-request-size: -1
+
+keycloak:
+  realm: iam1
+  resource: admin-spring-boot
+  auth-server-url: http://172.20.0.6:8080
+  credentials:
+    secret: wjXTITTUDMftpppiqJdSuDCl44ylHndH
+
+
+server:
+  max-http-request-header-size: 1MB
